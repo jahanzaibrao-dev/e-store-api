@@ -13,8 +13,9 @@ const { adminAuth } = require("./api/middleware/check-auth");
 require("dotenv").config();
 
 mongoose.connect(
-  "mongodb+srv://admin:admin@cluster0.hk577.mongodb.net/e_shop?retryWrites=true&w=majority",
-  { useNewUrlParser: true, useUnifiedTopology: true });
+  "mongodb+srv://jahanzaibrao-dev:03004087031j@cluster0.i34zz.mongodb.net/E-store?retryWrites=true&w=majority",
+  { useNewUrlParser: true, useUnifiedTopology: true }
+);
 
 mongoose.connection.on("connected", () => {
   console.log("mongodb connection established successfully");
