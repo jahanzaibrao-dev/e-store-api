@@ -1,15 +1,16 @@
-const mongoose = require("mongoose");
-var passwordHash = require("password-hash");
-const jwt = require("jsonwebtoken");
+const mongoose = require('mongoose');
+var passwordHash = require('password-hash');
+const jwt = require('jsonwebtoken');
 
-const User = require("../models/user");
+const User = require('../models/user');
 
 exports.isAdmin = (req, res, next) => {
-  if (req.userData.userType == "admin") return res.json(true);
+  if (req.userData.userType == 'admin') return res.json(true);
   else return res.json(false);
 };
 
 exports.signUp = (req, res, next) => {
+  let user;
   User.find({ email: req.body.email })
     .exec()
     .then((user) => {
@@ -17,21 +18,23 @@ exports.signUp = (req, res, next) => {
         return passwordHash.generate(req.body.password);
       }
       const error = new Error();
-      error.message = "User Exists!";
+      error.message = 'User Exists!';
       throw error;
     })
     .then((hash) => {
-      const user = createUser(
-        req.body.name,
-        req.body.phone,
-        req.body.email,
-        hash
-      );
+      user = createUser(req.body.name, req.body.phone, req.body.email, hash);
       return user.save();
     })
     .then((result) => {
       return res.status(201).json({
-        message: "User created successfully!",
+        message: 'User created successfully!',
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          userType: user.userType,
+          phone: user.phone,
+        },
       });
     })
     .catch((error) => {
@@ -41,12 +44,12 @@ exports.signUp = (req, res, next) => {
 
 exports.getProfile = (req, res, next) => {
   User.findOne({ email: req.userData.email })
-    .select("email _id name phone")
+    .select('email _id name phone')
     .exec()
     .then((user) => {
       if (user.length < 1) {
         const error = new Error();
-        error.message = "Auth Failed!";
+        error.message = 'Auth Failed!';
         throw error;
       }
       return user;
@@ -79,7 +82,7 @@ exports.logIn = (req, res, next) => {
     .then((res) => {
       if (res.length < 1) {
         const error = new Error();
-        error.message = "Invalid Credentials!";
+        error.message = 'Invalid Credentials!';
         throw error;
       }
       user = res[0];
@@ -95,11 +98,11 @@ exports.logIn = (req, res, next) => {
           },
           process.env.JWT_KEY,
           {
-            expiresIn: "1h",
+            expiresIn: '1h',
           }
         );
         return res.status(200).json({
-          message: "Auth Successful!",
+          message: 'Auth Successful!',
           token: token,
           user: {
             _id: user._id,
@@ -111,7 +114,7 @@ exports.logIn = (req, res, next) => {
         });
       }
       const error = new Error();
-      error.message = "Invalid Credentials!";
+      error.message = 'Invalid Credentials!';
       throw error;
     })
     .catch((error) => {
@@ -125,11 +128,11 @@ exports.deleteUser = (req, res, next) => {
     .exec()
     .then((result) => {
       res.status(200).json({
-        message: "User Deleted Successfully!",
+        message: 'User Deleted Successfully!',
       });
     })
     .catch((error) => {
-      error.message = "Could Not Delete User!";
+      error.message = 'Could Not Delete User!';
       next(error);
     });
 };
@@ -158,7 +161,7 @@ exports.getLast30DaysRegisteredUser = async function () {
       },
     },
     {
-      $count: "userCount",
+      $count: 'userCount',
     },
   ]).then((r) => {
     return r[0].userCount;
@@ -168,7 +171,7 @@ exports.getLast30DaysRegisteredUser = async function () {
 exports.getTotalUserCount = async function () {
   return User.aggregate([
     {
-      $count: "userCount",
+      $count: 'userCount',
     },
   ]).then((r) => {
     return r[0].userCount;
